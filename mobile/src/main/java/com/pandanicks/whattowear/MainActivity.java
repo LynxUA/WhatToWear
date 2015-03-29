@@ -333,5 +333,15 @@ public class MainActivity extends Activity implements
 //                    glocListener);
         }
     }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (speech != null) {
+            unbindService((android.content.ServiceConnection) speech);
+        }
+
+
+    }
 
 }
