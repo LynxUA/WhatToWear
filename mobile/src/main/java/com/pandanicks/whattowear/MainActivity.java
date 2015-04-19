@@ -2,6 +2,9 @@ package com.pandanicks.whattowear;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import android.app.AlertDialog;
 import android.content.ContentResolver;
@@ -22,12 +25,23 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import com.facebook.AccessToken;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 import com.pandanicks.whattowear.forecast.WeatherManager;
+import com.parse.LogInCallback;
 import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseFacebookUtils;
+import com.parse.ParseUser;
 
 public class MainActivity extends Activity implements
         RecognitionListener {
@@ -49,11 +63,47 @@ public class MainActivity extends Activity implements
     LocationManager nlocManager;
     LocationListener nlocListener;
 
+    private AdView adView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_client_key));
+//        ParseFacebookUtils.initialize(getApplicationContext());
+//        Collection<String> permissions = Arrays.asList("email", "public_profile");
+//        List<String> PERMISSIONS = Arrays.asList("email", "public_profile",
+//                "user_friends", "read_friendlists");
+//
+//        ParseFacebookUtils.logInWithReadPermissionsInBackground(this,PERMISSIONS, new LogInCallback() {
+//            @Override
+//            public void done(ParseUser user, ParseException err) {
+//                if (err != null || user == null) {
+//                    //Log.e(TAG, "facebookConnect", err);
+//                    //this.onFacebookLoginError(FailureReason.OTHER);
+//                } else {
+//
+//                }
+//            }
+//        });
         setContentView(R.layout.activity_main);
+
+
+        adView = new AdView(this);
+        adView.setAdUnitId(getString(R.string.ad_unit_id));
+        adView.setAdSize(AdSize.BANNER);
+
+        // Поиск разметки LinearLayout (предполагается, что ей был присвоен
+        // атрибут android:id="@+id/mainLayout").
+        RelativeLayout layout = (RelativeLayout)findViewById(R.id.main_layout);
+
+        // Добавление в разметку экземпляра adView.
+        layout.addView(adView);
+
+        // Инициирование общего запроса.
+        AdRequest adRequest = new AdRequest.Builder().build();
+
+        // Загрузка adView с объявлением.
+        adView.loadAd(adRequest);
         returnedText = (TextView) findViewById(R.id.textView);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         toggleButton = (ToggleButton) findViewById(R.id.toggleButton);
@@ -249,38 +299,38 @@ public class MainActivity extends Activity implements
         }
     }
 
-    //This is for Lat lng which is determine by your device GPS
-    public class MyLocationListenerGPS implements LocationListener
-    {
-        @Override
-        public void onLocationChanged(Location loc)
-        {
-            glat = loc.getLatitude();
-            glng = loc.getLongitude();
-
-            //Setting the GPS Lat, Lng into the textView
-            ((TextView)(findViewById(R.id.textViewGpsLat))).setText("GPS Latitude:  " + glat);
-            ((TextView)(findViewById(R.id.textViewGpsLng))).setText("GPS Longitude:  " + glng);
-
-            Log.d("LAT & LNG GPS:", glat + " " + glng);
-        }
-
-        @Override
-        public void onProviderDisabled(String provider)
-        {
-            Log.d("LOG", "GPS is OFF!");
-        }
-        @Override
-        public void onProviderEnabled(String provider)
-        {
-            Log.d("LOG", "Thanks for enabling GPS !");
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras)
-        {
-        }
-    }
+//    //This is for Lat lng which is determine by your device GPS
+//    public class MyLocationListenerGPS implements LocationListener
+//    {
+//        @Override
+//        public void onLocationChanged(Location loc)
+//        {
+//            glat = loc.getLatitude();
+//            glng = loc.getLongitude();
+//
+//            //Setting the GPS Lat, Lng into the textView
+//            ((TextView)(findViewById(R.id.textViewGpsLat))).setText("GPS Latitude:  " + glat);
+//            ((TextView)(findViewById(R.id.textViewGpsLng))).setText("GPS Longitude:  " + glng);
+//
+//            Log.d("LAT & LNG GPS:", glat + " " + glng);
+//        }
+//
+//        @Override
+//        public void onProviderDisabled(String provider)
+//        {
+//            Log.d("LOG", "GPS is OFF!");
+//        }
+//        @Override
+//        public void onProviderEnabled(String provider)
+//        {
+//            Log.d("LOG", "Thanks for enabling GPS !");
+//        }
+//
+//        @Override
+//        public void onStatusChanged(String provider, int status, Bundle extras)
+//        {
+//        }
+//    }
 
     public void showLoc() {
 
@@ -325,8 +375,8 @@ public class MainActivity extends Activity implements
 //                    nlocListener);
 
 
-            glocManager  = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-            glocListener = new MyLocationListenerGPS();
+            //glocManager  = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+            //glocListener = new MyLocationListenerGPS();
 //            glocManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
 //                    1000 * 1,  // 1 Sec
 //                    0,         // 0 meter
@@ -342,6 +392,12 @@ public class MainActivity extends Activity implements
         }
 
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        ParseFacebookUtils.onActivityResult(requestCode, resultCode, data);
     }
 
 }
